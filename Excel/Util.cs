@@ -1,4 +1,4 @@
-﻿using DbgToolkit.Reflection;
+using DbgToolkit.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,13 +44,21 @@ namespace DbgToolkit.Excel {
                         prop.SetValue(o, value);
                     }
                     else if (prop.PropertyType == typeof(string)) {
-                        prop.SetValue(o, value);
+                        prop.SetValue(o, Convert.ToString(value));
                     }
                     else if (prop.PropertyType == typeof(decimal)) {
                         var valueType = value.GetType();
                         if (valueType != typeof(double))
                             throw new Exception($"{type.AssemblyQualifiedName}.{prop.Name} is decimal, while value from Range is {valueType}.");
                         prop.SetValue(o, Convert.ToDecimal(value));
+                    }
+                    else if (prop.PropertyType.IsEnum) {
+                        if (value is int intValue) {
+                            prop.SetValue(o, Enum.ToObject(prop.PropertyType, intValue));
+                        }
+                        else {
+                            throw new Exception($"{type.AssemblyQualifiedName}.{prop.Name} is an enum, but the value from Range is not an integer.");
+                        }
                     }
                     else {
                         prop.SetValue(o, value);
